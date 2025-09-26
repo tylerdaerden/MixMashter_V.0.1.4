@@ -16,6 +16,14 @@ namespace MixMashter.BLL.Interfaces
         Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword);
         Task<bool> DeleteProfileAsync(int userId);
         Task<bool> SetRoleAsync(int userId, Role newRole);
+
+        // Validations métier pour le service User
+        public bool IsValidName(string name);
+
+        public bool IsValidEmail(string email);
+
+        public bool IsValidPassword(string password);
+
     }
 }
 

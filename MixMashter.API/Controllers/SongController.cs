@@ -107,6 +107,13 @@ namespace MixMashter.API.Controllers
             var existing = await _songService.GetByIdAsync(id);
             if (existing == null) return NotFound();
 
+            //ici les validations
+            if (!_songService.IsValidTitle(dto.Title))
+                return BadRequest("Invalid song title");
+
+            if (!_songService.IsValidGenre(dto.Genre))
+                return BadRequest("Invalid song genre");
+
             existing.ArtistId = dto.ArtistId;
             existing.Title = dto.Title;
             existing.Length = dto.Length;
@@ -119,6 +126,7 @@ namespace MixMashter.API.Controllers
 
             return NoContent();
         }
+
 
         // DELETE: api/Song/id
         [HttpDelete("{id}")]
@@ -140,7 +148,6 @@ namespace MixMashter.API.Controllers
             var song = await _songService.GetByIdAsync(id);
             if (song == null) return NotFound();
 
-            // On projette l'entité Song vers un DTO partiel
             var dto = new SongPatchDto
             {
                 ArtistId = song.ArtistId,
@@ -151,18 +158,16 @@ namespace MixMashter.API.Controllers
                 IsExplicit = song.IsExplicit
             };
 
-            // Application du patch sur le DTO
             patchDoc.ApplyTo(dto, ModelState);
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Validation supplémentaire : si l’ArtistId change → vérifier que l’artiste existe
-            if (dto.ArtistId.HasValue && dto.ArtistId.Value != song.ArtistId)
-            {
-                var artist = await _artistService.GetByIdAsync(dto.ArtistId.Value);
-                if (artist == null) return BadRequest("Artiste non trouvé");
-            }
+            // les validations as usual
+            if (!string.IsNullOrEmpty(dto.Title) && !_songService.IsValidTitle(dto.Title))
+                return BadRequest("Invalid song title");
 
-            // Projection inverse : mise à jour de l’entité depuis le DTO
+            if (!string.IsNullOrEmpty(dto.Genre) && !_songService.IsValidGenre(dto.Genre))
+                return BadRequest("Invalid song genre");
+
             if (dto.ArtistId.HasValue) song.ArtistId = dto.ArtistId.Value;
             if (!string.IsNullOrEmpty(dto.Title)) song.Title = dto.Title;
             if (dto.Length.HasValue) song.Length = dto.Length.Value;
@@ -173,7 +178,6 @@ namespace MixMashter.API.Controllers
             var ok = await _songService.UpdateAsync(song);
             if (!ok) return NotFound();
 
-            // Retourner un ReadDto
             var artistName = (await _artistService.GetByIdAsync(song.ArtistId))?.ArtistName ?? string.Empty;
             var result = new SongReadDto
             {
@@ -189,6 +193,7 @@ namespace MixMashter.API.Controllers
 
             return Ok(result);
         }
+
 
 
 

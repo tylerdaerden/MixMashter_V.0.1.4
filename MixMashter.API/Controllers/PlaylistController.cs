@@ -51,11 +51,13 @@ namespace MixMashter.API.Controllers
                     UrlLink = pm.Mashup.UrlLink,
                     CoverImage = pm.Mashup.CoverImage,
                     UserId = pm.Mashup.UserId
-                }).ToList()
+                }).ToList(),
+                TotalLength = p.TotalLength 
             });
 
             return Ok(result);
         }
+
 
 
         // GET by ID
@@ -83,18 +85,23 @@ namespace MixMashter.API.Controllers
                     UrlLink = pm.Mashup.UrlLink,
                     CoverImage = pm.Mashup.CoverImage,
                     UserId = pm.Mashup.UserId
-                }).ToList()
+                }).ToList(),
+                TotalLength = playlist.TotalLength 
             };
 
             return Ok(result);
         }
+
 
         // POST create
         [HttpPost]
         public async Task<ActionResult<PlaylistReadDto>> Create([FromBody] PlaylistCreateDto dto)
         {
             var user = await _userService.GetByIdAsync(dto.UserId);
-            if (user == null) return BadRequest("User not found");
+            if (user == null) return BadRequest("Utilisateur non trouvé");
+
+            if (!_playlistService.IsValidTitle(dto.Title))
+                return BadRequest("Nom de playlist invalide");
 
             var playlist = new Playlist
             {
@@ -112,11 +119,13 @@ namespace MixMashter.API.Controllers
                 Title = created.Title,
                 DateCreated = created.DateCreated,
                 Username = user.Username,
-                Mashups = new List<MashupReadDto>() //vide à création , logique
+                Mashups = new List<MashupReadDto>(),
+                TotalLength = 0 //d'office si nouvelle playlist , pas de mashup donc longueur 0 (je l'ai juste mis pour standardiser le retour)
             };
 
             return CreatedAtAction(nameof(GetById), new { id = created.PlaylistId }, result);
         }
+
 
         // PATCH update partiel
         [HttpPatch("{id}")]
@@ -133,7 +142,12 @@ namespace MixMashter.API.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             if (!string.IsNullOrEmpty(dto.Title))
+            {
+                if (!_playlistService.IsValidTitle(dto.Title))
+                    return BadRequest("Nom de playlist invalide");
+
                 playlist.Title = dto.Title;
+            }
 
             var ok = await _playlistService.UpdateAsync(playlist);
             if (!ok) return NotFound();
@@ -156,11 +170,14 @@ namespace MixMashter.API.Controllers
                     UrlLink = pm.Mashup.UrlLink,
                     CoverImage = pm.Mashup.CoverImage,
                     UserId = pm.Mashup.UserId
-                }).ToList()
+                }).ToList(),
+                TotalLength = playlist.TotalLength
             };
 
             return Ok(result);
         }
+
+
 
         // DELETE playlist
         [HttpDelete("{id}")]
@@ -221,6 +238,7 @@ namespace MixMashter.API.Controllers
             return Ok(result);
         }
 
+        //changer toute une playlist en PUT (ici je n'autorise pas le changement de userId, juste le titre)
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] PlaylistUpdateDto dto)
         {
@@ -228,6 +246,9 @@ namespace MixMashter.API.Controllers
 
             var user = await _userService.GetByIdAsync(dto.UserId);
             if (user == null) return BadRequest("User not found");
+
+            if (!_playlistService.IsValidTitle(dto.Title))
+                return BadRequest("Invalid playlist title");
 
             var playlist = new Playlist
             {
@@ -239,7 +260,7 @@ namespace MixMashter.API.Controllers
 
             var ok = await _playlistService.UpdateAsync(playlist);
             if (!ok) return NotFound();
-                        
+
             var result = new PlaylistReadDto
             {
                 PlaylistId = playlist.PlaylistId,
@@ -258,10 +279,13 @@ namespace MixMashter.API.Controllers
                     UrlLink = pm.Mashup.UrlLink,
                     CoverImage = pm.Mashup.CoverImage,
                     UserId = pm.Mashup.UserId
-                }).ToList()
+                }).ToList(),
+                TotalLength = playlist.TotalLength
             };
 
             return Ok(result);
         }
+
+
     }
 }

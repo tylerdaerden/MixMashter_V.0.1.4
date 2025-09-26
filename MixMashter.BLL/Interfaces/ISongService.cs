@@ -17,6 +17,12 @@ namespace MixMashter.BLL.Interfaces
 
         // méthodes optionnelle pas dans mon dossier , mais je la garde pour plus tard sur suggestion d'un collègue .
         Task<IEnumerable<Song>> GetExplicitSongsAsync();
+
+        //méthodes de validation
+        public bool IsValidTitle(string title);
+
+        public bool IsValidGenre(string genre);
+        
     }
 }
 

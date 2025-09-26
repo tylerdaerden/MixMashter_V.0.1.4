@@ -136,6 +136,10 @@ namespace MixMashter.Models.Entities
         // liaison avec les users et les mashups
         public User User { get; set; } = null!;
         public ICollection<Playlist_Mashup> PlaylistMashups { get; set; } = new List<Playlist_Mashup>();
+
+        // durée totale en secondes
+        [NotMapped] // pas stockée en DB , juste calculée à la volée et comme ça j'indique à EF Core de ne pas la mapper dans la DB , opti pour un simple calcul
+        public int TotalLength => PlaylistMashups?.Sum(pm => pm.Mashup?.Length ?? 0) ?? 0;
     }
 
     //ici comme j'ai des attributs en plus dans mes tables de jonction je crée des classes pour elles aussi

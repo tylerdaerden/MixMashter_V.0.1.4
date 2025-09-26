@@ -17,6 +17,9 @@ namespace MixMashter.BLL.Interfaces
 
         // bonus : compter le nombre de chansons dans une playlist , vu dans un autre projet donc potentiellement à ajouter en bonus chokotoff
         Task<int> GetSongCountAsync(int playlistId);
+
+        // Validation
+        bool IsValidTitle(string title);
     }
 }
 

@@ -19,5 +19,11 @@ namespace MixMashter.BLL.Interfaces
 
         // Méthodes métier spécifiques
         Task<int> CalculateLengthAsync(int mashupId);
+
+        //validations
+        public bool IsValidFormat(string? format);
+        public bool IsValidUrlLink(string? url);
+        public bool IsValidCoverImage(string? url);
+
     }
 }

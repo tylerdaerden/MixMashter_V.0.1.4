@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MixMashter.BLL.Interfaces;
+﻿using MixMashter.BLL.Interfaces;
 using MixMashter.DAL.Repositories.Interfaces;
 using MixMashter.Models.Entities;
-
 
 namespace MixMashter.BLL.Services
 {
@@ -37,7 +31,6 @@ namespace MixMashter.BLL.Services
                 MashupId = mashupId,
                 AddedDate = DateTime.UtcNow
             };
-
             return await _favoritesRepository.AddAsync(favorite);
         }
 
@@ -47,4 +40,3 @@ namespace MixMashter.BLL.Services
         }
     }
 }
-

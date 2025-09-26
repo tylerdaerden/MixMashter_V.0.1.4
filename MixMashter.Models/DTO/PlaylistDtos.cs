@@ -23,13 +23,15 @@ namespace MixMashter.Models.DTOs
         public int PlaylistId { get; set; }
         public int UserId { get; set; }
         public string Title { get; set; } = string.Empty;
-        public DateTime DateCreated { get; set; }
-
-        // Pour simplifier la vie côté front (et une vie facile est une belle vie)
+        public DateTime DateCreated { get; set; }  
         public string? Username { get; set; }
 
         // Liste des Mashups liés à la playlist
         public List<MashupReadDto> Mashups { get; set; } = new List<MashupReadDto>();
+
+        // ma longueur de la playlist en secondes
+        public int TotalLength { get; set; }
+
     }
 
     // DTO pour update complet

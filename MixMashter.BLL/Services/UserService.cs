@@ -2,6 +2,7 @@
 using MixMashter.DAL.Repositories.Interfaces;
 using MixMashter.Models.Entities;
 using MixMashter.Models.Enums;
+using System.Text.RegularExpressions;
 
 namespace MixMashter.BLL.Services
 {
@@ -116,6 +117,52 @@ namespace MixMashter.BLL.Services
             user.Role = newRole;
             await _userRepository.UpdateAsync(user);
             return true;
+        }
+
+        //Méthodes de validation : 
+        /// <summary>
+        /// récupération et adaptation d'une méthode IsValidName déjà utilisée et validée précedemment en SGBD et en stage
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public bool IsValidName(string name)
+        {
+            return !string.IsNullOrWhiteSpace(name) &&
+                   name.Length >= 2 &&              
+                   name.Length <= 100 &&
+                   Regex.IsMatch(name, @"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$");
+        }
+
+        /// <summary>
+        /// ici récupération d'une méthode IsValidEmail sur base d'une méthode Regex déjà utilisée et validée précedemment en SGBD et en stage      
+        /// Returns true if the email is valid; otherwise, false.
+        /// </summary>
+        /// <param name="mailtocheck"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return false;
+
+            return Regex.IsMatch(
+                email,
+                @"^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$",
+                RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
+        /// récupération et adaptation d'une méthode IsValidName déjà utilisée et validée précedemment en SGBD et en stage
+        /// </summary>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public bool IsValidPassword(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password)) return false;
+
+            // Ex: min 8 caractères, 1 maj, 1 min, 1 chiffre, 1 spécial
+            var regex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$");
+            return regex.IsMatch(password);
         }
 
 

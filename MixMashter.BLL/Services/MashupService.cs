@@ -53,5 +53,48 @@ namespace MixMashter.BLL.Services
             // On additionne la durée de toutes les chansons du mashup
             return mashup.MashupSongs.Sum(ms => ms.Song.Length);
         }
+
+
+        // méthodes de validation
+        public bool IsValidFormat(string format)
+        {
+            if (string.IsNullOrWhiteSpace(format))
+                return false;
+
+            var allowedFormats = new[] { "mp3", "wav", "flac", "aac" };
+
+            return allowedFormats.Any(f =>
+                string.Equals(format.Trim(), f, StringComparison.OrdinalIgnoreCase));
+        }
+
+
+        public bool IsValidUrlLink(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return false;
+
+            // Accepte http, https et ftp
+            return Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                   && (uri.Scheme == Uri.UriSchemeHttp
+                       || uri.Scheme == Uri.UriSchemeHttps
+                       || uri.Scheme == Uri.UriSchemeFtp);
+        }
+
+        public bool IsValidCoverImage(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return false;
+
+            // Vérifie que c’est une URL absolue valide
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uriResult))
+                return false;
+
+            // Extensions autorisées
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+
+            return allowedExtensions.Any(ext =>
+                uriResult.AbsolutePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
+        }
+
     }
 }

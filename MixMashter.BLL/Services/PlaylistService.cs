@@ -44,6 +44,14 @@ namespace MixMashter.BLL.Services
             return await _playlistRepository.DeleteAsync(id);
         }
 
+        //méthode de validation 
+        public bool IsValidTitle(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title)) return false;
+            if (title.Length > 100) return false;
+            return true;
+        }
+
         //bonus chokotoff
         public async Task<int> GetSongCountAsync(int playlistId)
         {

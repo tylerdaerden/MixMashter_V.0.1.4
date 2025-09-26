@@ -70,6 +70,11 @@ namespace MixMashter.API.Controllers
             var user = await _userService.GetByIdAsync(dto.UserId);
             if (user == null) return BadRequest("User not found");
 
+            // les validations
+            if (!_mashupService.IsValidFormat(dto.Format)) return BadRequest("Invalid format (allowed: mp3, wav, flac)");
+            if (!_mashupService.IsValidUrlLink(dto.UrlLink)) return BadRequest("Invalid URL link");
+            if (!_mashupService.IsValidCoverImage(dto.CoverImage)) return BadRequest("Invalid cover image URL (must be .jpg/.jpeg/.png)");
+
             var mashup = new Mashup
             {
                 UserId = dto.UserId,
@@ -101,6 +106,7 @@ namespace MixMashter.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.MashupId }, result);
         }
 
+
         // PUT update total: api/Mashup/id
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] MashupUpdateDto dto)
@@ -109,6 +115,11 @@ namespace MixMashter.API.Controllers
 
             var user = await _userService.GetByIdAsync(dto.UserId);
             if (user == null) return BadRequest("User not found");
+
+            // les validations
+            if (!_mashupService.IsValidFormat(dto.Format)) return BadRequest("Invalid format (allowed: mp3, wav, flac)");
+            if (!_mashupService.IsValidUrlLink(dto.UrlLink)) return BadRequest("Invalid URL link");
+            if (!_mashupService.IsValidCoverImage(dto.CoverImage)) return BadRequest("Invalid cover image URL (must be .jpg/.jpeg/.png)");
 
             var mashup = new Mashup
             {
@@ -128,6 +139,7 @@ namespace MixMashter.API.Controllers
 
             return NoContent();
         }
+
 
         // PATCH: api/Mashup/id
         [HttpPatch("{id}")]
@@ -152,6 +164,14 @@ namespace MixMashter.API.Controllers
             patchDoc.ApplyTo(patchDto, ModelState);
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            // les validations uniquement si modifié
+            if (!string.IsNullOrEmpty(patchDto.Format) && !_mashupService.IsValidFormat(patchDto.Format))
+                return BadRequest("Invalid format");
+            if (!string.IsNullOrEmpty(patchDto.UrlLink) && !_mashupService.IsValidUrlLink(patchDto.UrlLink))
+                return BadRequest("Invalid URL link");
+            if (!string.IsNullOrEmpty(patchDto.CoverImage) && !_mashupService.IsValidCoverImage(patchDto.CoverImage))
+                return BadRequest("Invalid cover image");
+
             mashup.Title = patchDto.Title ?? mashup.Title;
             mashup.Length = patchDto.Length ?? mashup.Length;
             mashup.IsExplicit = patchDto.IsExplicit ?? mashup.IsExplicit;
@@ -164,7 +184,7 @@ namespace MixMashter.API.Controllers
             if (!ok) return NotFound();
 
             // retour vers le Readto de mes gentils Dtos
-            var result = new MashupReadDto
+            return Ok(new MashupReadDto
             {
                 MashupId = mashup.MashupId,
                 UserId = mashup.UserId,
@@ -176,10 +196,9 @@ namespace MixMashter.API.Controllers
                 UrlLink = mashup.UrlLink,
                 CoverImage = mashup.CoverImage,
                 Username = mashup.User?.Username
-            };
-
-            return Ok(result);
+            });
         }
+
 
 
         // DELETE: api/Mashup/id

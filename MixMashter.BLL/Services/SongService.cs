@@ -49,5 +49,18 @@ namespace MixMashter.BLL.Services
             var songs = await _songRepository.GetAllAsync();
             return songs.Where(s => s.IsExplicit);
         }
+
+        //méthodes de validation
+        public bool IsValidTitle(string title)
+        {
+            return !string.IsNullOrWhiteSpace(title) && title.Length <= 100;
+        }
+
+        public bool IsValidGenre(string genre)
+        {
+            return !string.IsNullOrWhiteSpace(genre) && genre.Length <= 100;
+        }
+
+
     }
 }

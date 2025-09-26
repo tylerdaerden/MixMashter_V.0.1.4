@@ -69,6 +69,12 @@ namespace MixMashter.API.Controllers
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             if (dto.UserId != userId) return Forbid("Vous ne pouvez mettre à jour que votre propre profil");
 
+            if (!_userService.IsValidName(dto.Firstname) || !_userService.IsValidName(dto.Lastname))
+                return BadRequest("Nom ou prénom invalide"); // j'ai bien retenu la leçon de la validation de ne pas dire ce qui est précisement invalide pour des raisons de sécurité 🙂
+
+            if (!_userService.IsValidEmail(dto.Email))
+                return BadRequest("Email invalide");
+
             var user = await _userService.GetByIdAsync(userId);
             if (user == null) return NotFound();
 
@@ -83,16 +89,23 @@ namespace MixMashter.API.Controllers
             return NoContent();
         }
 
+
         // PUT: api/User/change-password
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var success = await _userService.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword);
 
+            // ✅ Validation du nouveau mot de passe
+            if (!_userService.IsValidPassword(dto.NewPassword))
+                return BadRequest("Password must contain at least 8 characters, including uppercase, lowercase, number and special character.");
+
+            var success = await _userService.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword);
             if (!success) return BadRequest("Mot de passe actuel invalide");
+
             return NoContent();
         }
+
 
         // DELETE: api/User/delete-profile
         [HttpDelete("delete-profile")]

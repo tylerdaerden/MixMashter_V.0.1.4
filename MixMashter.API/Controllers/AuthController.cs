@@ -28,10 +28,18 @@ namespace MixMashter.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            // petit check pour s'assurer que le rôle est soit User soit Masher
+            if (!_userService.IsValidName(dto.Firstname) || !_userService.IsValidName(dto.Lastname))
+                return BadRequest("Nom ou prénom invalide");
+
+            if (!_userService.IsValidEmail(dto.Email))
+                return BadRequest("Email invalide");
+
+            if (!_userService.IsValidPassword(dto.Password))
+                return BadRequest("Mot de passe invalide");
+
             if (dto.Role != Role.User && dto.Role != Role.Masher)
             {
-                return BadRequest("Rôle invalide . Choisisez entre User et Masher svp ! .");
+                return BadRequest("Rôle invalide. Choisissez User ou Masher.");
             }
 
             var user = await _userService.RegisterAsync(
@@ -47,6 +55,8 @@ namespace MixMashter.API.Controllers
 
             return Ok(new { user.UserId, user.Email, user.Username, user.Role });
         }
+
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)

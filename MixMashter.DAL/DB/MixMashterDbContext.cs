@@ -12,7 +12,7 @@ namespace MixMashter.DAL.Db
 
         }
 
-        //préparation de mon DB context pour après ma migration et EF Core , ici encore je force le nullable avec null par sécurité
+        //préparation de mon DB context pour après ma migration et EF Core , ici encore je force le non nullable avec null! par sécurité
 
         
         public DbSet<User> Users { get; set; } = null!;
@@ -29,7 +29,9 @@ namespace MixMashter.DAL.Db
         // chinée direct sur le site de Microsoft
 
         /// <summary>
-        /// méthode pour configurer les relations entre les entités, native de l'orm EF Core , donc je fais au plus simple 👍
+        /// méthode pour configurer les relations entre les entités, native de l'orm EF Core , donc je fais au plus simple , à noter que ce fichier est celui
+        /// que j'ai du modifier à plusurs reprises pour régler des soucis de relations , de clés composites etc... petite joie de EF Core, mais au final c'est une façon
+        /// bien centralisée pour gérer ma DB, première utilisation exercices de tehnofutur donc j'apprends au fur et à mesure
         /// https://learn.microsoft.com/en-us/dotnet/api/system.data.entity.dbcontext.onmodelcreating?view=entity-framework-6.2.0
         /// </summary>
         /// <param name="modelBuilder"></param>
