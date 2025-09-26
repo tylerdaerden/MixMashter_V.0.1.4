@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MixMashter.DAL.Db;
 
@@ -11,9 +12,11 @@ using MixMashter.DAL.Db;
 namespace MixMashter.DAL.Migrations
 {
     [DbContext(typeof(MixMashterDbContext))]
-    partial class MixMashterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250926003752_SyncPlaylistMashupClean")]
+    partial class SyncPlaylistMashupClean
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

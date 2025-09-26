@@ -23,13 +23,22 @@ namespace MixMashter.DAL.Repositories.Implementations
         public async Task<Playlist?> GetByIdAsync(int id)
         {
             return await _context.Playlists
+                .Include(p => p.User)
+                .Include(p => p.PlaylistMashups)
+                    .ThenInclude(pm => pm.Mashup)
                 .FirstOrDefaultAsync(p => p.PlaylistId == id);
         }
 
+
         public async Task<IEnumerable<Playlist>> GetAllAsync()
         {
-            return await _context.Playlists.ToListAsync();
+            return await _context.Playlists
+                .Include(p => p.User)
+                .Include(p => p.PlaylistMashups)
+                    .ThenInclude(pm => pm.Mashup)
+                .ToListAsync();
         }
+
 
         public async Task<Playlist?> AddAsync(Playlist playlist)
         {

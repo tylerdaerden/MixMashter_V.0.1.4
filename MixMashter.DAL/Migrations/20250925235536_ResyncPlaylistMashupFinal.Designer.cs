@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MixMashter.DAL.Db;
 
@@ -11,9 +12,11 @@ using MixMashter.DAL.Db;
 namespace MixMashter.DAL.Migrations
 {
     [DbContext(typeof(MixMashterDbContext))]
-    partial class MixMashterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250925235536_ResyncPlaylistMashupFinal")]
+    partial class ResyncPlaylistMashupFinal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,9 +166,14 @@ namespace MixMashter.DAL.Migrations
                     b.Property<DateTime>("AddedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("SongId")
+                        .HasColumnType("int");
+
                     b.HasKey("PlaylistId", "MashupId");
 
                     b.HasIndex("MashupId");
+
+                    b.HasIndex("SongId");
 
                     b.ToTable("PlaylistMashups");
                 });
@@ -329,6 +337,10 @@ namespace MixMashter.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("MixMashter.Models.Entities.Song", null)
+                        .WithMany("PlaylistMashups")
+                        .HasForeignKey("SongId");
+
                     b.Navigation("Mashup");
 
                     b.Navigation("Playlist");
@@ -367,6 +379,8 @@ namespace MixMashter.DAL.Migrations
             modelBuilder.Entity("MixMashter.Models.Entities.Song", b =>
                 {
                     b.Navigation("MashupSongs");
+
+                    b.Navigation("PlaylistMashups");
                 });
 
             modelBuilder.Entity("MixMashter.Models.Entities.User", b =>

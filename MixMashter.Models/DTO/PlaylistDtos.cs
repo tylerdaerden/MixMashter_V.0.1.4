@@ -29,7 +29,7 @@ namespace MixMashter.Models.DTOs
         public string? Username { get; set; }
 
         // Liste des Mashups liés à la playlist
-        public ICollection<string> MashupTitles { get; set; } = new List<string>();
+        public List<MashupReadDto> Mashups { get; set; } = new List<MashupReadDto>();
     }
 
     // DTO pour update complet

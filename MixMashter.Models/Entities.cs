@@ -78,12 +78,11 @@ namespace MixMashter.Models.Entities
 
         public int YearRelease { get; set; }
 
-        public bool IsExplicit { get; set; } //Je passe Explicit en IsExplicit pour éviter conflit avec mot réservé en C#
+        public bool IsExplicit { get; set; } // Je passe Explicit en IsExplicit pour éviter conflit avec mot réservé en C#
 
-        // Navigation comme précedemment pour les Mashups et Artists
+        // Navigation
         public Artist Artist { get; set; } = null!;
         public ICollection<Mashup_Song> MashupSongs { get; set; } = new List<Mashup_Song>();
-        public ICollection<Playlist_Mashup> PlaylistMashups { get; set; } = new List<Playlist_Mashup>();
     }
 
     public class Mashup

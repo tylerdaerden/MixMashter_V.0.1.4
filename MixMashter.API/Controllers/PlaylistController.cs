@@ -32,16 +32,31 @@ namespace MixMashter.API.Controllers
         public async Task<ActionResult<IEnumerable<PlaylistReadDto>>> GetAll()
         {
             var playlists = await _playlistService.GetAllAsync();
+
             var result = playlists.Select(p => new PlaylistReadDto
             {
                 PlaylistId = p.PlaylistId,
                 UserId = p.UserId,
                 Title = p.Title,
                 DateCreated = p.DateCreated,
-                Username = p.User?.Username
+                Username = p.User?.Username,
+                Mashups = p.PlaylistMashups.Select(pm => new MashupReadDto
+                {
+                    MashupId = pm.Mashup.MashupId,
+                    Title = pm.Mashup.Title,
+                    Length = pm.Mashup.Length,
+                    IsExplicit = pm.Mashup.IsExplicit,
+                    Description = pm.Mashup.Description,
+                    Format = pm.Mashup.Format,
+                    UrlLink = pm.Mashup.UrlLink,
+                    CoverImage = pm.Mashup.CoverImage,
+                    UserId = pm.Mashup.UserId
+                }).ToList()
             });
+
             return Ok(result);
         }
+
 
         // GET by ID
         [HttpGet("{id}")]
@@ -57,7 +72,18 @@ namespace MixMashter.API.Controllers
                 Title = playlist.Title,
                 DateCreated = playlist.DateCreated,
                 Username = playlist.User?.Username,
-                MashupTitles = playlist.PlaylistMashups.Select(pm => pm.Mashup.Title).ToList()
+                Mashups = playlist.PlaylistMashups.Select(pm => new MashupReadDto
+                {
+                    MashupId = pm.Mashup.MashupId,
+                    Title = pm.Mashup.Title,
+                    Length = pm.Mashup.Length,
+                    IsExplicit = pm.Mashup.IsExplicit,
+                    Description = pm.Mashup.Description,
+                    Format = pm.Mashup.Format,
+                    UrlLink = pm.Mashup.UrlLink,
+                    CoverImage = pm.Mashup.CoverImage,
+                    UserId = pm.Mashup.UserId
+                }).ToList()
             };
 
             return Ok(result);
@@ -86,33 +112,10 @@ namespace MixMashter.API.Controllers
                 Title = created.Title,
                 DateCreated = created.DateCreated,
                 Username = user.Username,
-                MashupTitles = new List<string>()
+                Mashups = new List<MashupReadDto>() //vide à création , logique
             };
 
             return CreatedAtAction(nameof(GetById), new { id = created.PlaylistId }, result);
-        }
-
-        // PUT update complet
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] PlaylistUpdateDto dto)
-        {
-            if (id != dto.PlaylistId) return BadRequest("ID mismatch");
-
-            var user = await _userService.GetByIdAsync(dto.UserId);
-            if (user == null) return BadRequest("User not found");
-
-            var playlist = new Playlist
-            {
-                PlaylistId = dto.PlaylistId,
-                UserId = dto.UserId,
-                Title = dto.Title,
-                DateCreated = DateTime.UtcNow
-            };
-
-            var ok = await _playlistService.UpdateAsync(playlist);
-            if (!ok) return NotFound();
-
-            return NoContent();
         }
 
         // PATCH update partiel
@@ -129,7 +132,8 @@ namespace MixMashter.API.Controllers
             patchDoc.ApplyTo(dto, ModelState);
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (!string.IsNullOrEmpty(dto.Title)) playlist.Title = dto.Title;
+            if (!string.IsNullOrEmpty(dto.Title))
+                playlist.Title = dto.Title;
 
             var ok = await _playlistService.UpdateAsync(playlist);
             if (!ok) return NotFound();
@@ -141,7 +145,18 @@ namespace MixMashter.API.Controllers
                 Title = playlist.Title,
                 DateCreated = playlist.DateCreated,
                 Username = playlist.User?.Username,
-                MashupTitles = playlist.PlaylistMashups.Select(pm => pm.Mashup.Title).ToList()
+                Mashups = playlist.PlaylistMashups.Select(pm => new MashupReadDto
+                {
+                    MashupId = pm.Mashup.MashupId,
+                    Title = pm.Mashup.Title,
+                    Length = pm.Mashup.Length,
+                    IsExplicit = pm.Mashup.IsExplicit,
+                    Description = pm.Mashup.Description,
+                    Format = pm.Mashup.Format,
+                    UrlLink = pm.Mashup.UrlLink,
+                    CoverImage = pm.Mashup.CoverImage,
+                    UserId = pm.Mashup.UserId
+                }).ToList()
             };
 
             return Ok(result);
@@ -202,6 +217,49 @@ namespace MixMashter.API.Controllers
                 CoverImage = pm.Mashup.CoverImage,
                 UserId = pm.Mashup.UserId
             });
+
+            return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] PlaylistUpdateDto dto)
+        {
+            if (id != dto.PlaylistId) return BadRequest("ID mismatch");
+
+            var user = await _userService.GetByIdAsync(dto.UserId);
+            if (user == null) return BadRequest("User not found");
+
+            var playlist = new Playlist
+            {
+                PlaylistId = dto.PlaylistId,
+                UserId = dto.UserId,
+                Title = dto.Title,
+                DateCreated = DateTime.UtcNow
+            };
+
+            var ok = await _playlistService.UpdateAsync(playlist);
+            if (!ok) return NotFound();
+                        
+            var result = new PlaylistReadDto
+            {
+                PlaylistId = playlist.PlaylistId,
+                UserId = playlist.UserId,
+                Title = playlist.Title,
+                DateCreated = playlist.DateCreated,
+                Username = user.Username,
+                Mashups = playlist.PlaylistMashups.Select(pm => new MashupReadDto
+                {
+                    MashupId = pm.Mashup.MashupId,
+                    Title = pm.Mashup.Title,
+                    Length = pm.Mashup.Length,
+                    IsExplicit = pm.Mashup.IsExplicit,
+                    Description = pm.Mashup.Description,
+                    Format = pm.Mashup.Format,
+                    UrlLink = pm.Mashup.UrlLink,
+                    CoverImage = pm.Mashup.CoverImage,
+                    UserId = pm.Mashup.UserId
+                }).ToList()
+            };
 
             return Ok(result);
         }
