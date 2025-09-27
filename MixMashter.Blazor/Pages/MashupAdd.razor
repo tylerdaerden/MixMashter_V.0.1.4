@@ -1,0 +1,96 @@
+﻿@page "/mashups/add"
+@using ClientDtos = MixMashter.Blazor.Models.Mashup
+@using MixMashter.Blazor.Services
+@using System.IdentityModel.Tokens.Jwt
+@using Blazored.LocalStorage
+@inject MashupApiService MashupService
+@inject NavigationManager Nav
+@inject ILocalStorageService LocalStorage
+
+<h3>Ajouter un Mashup</h3>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info">@message</div>
+}
+
+<EditForm Model="mashupModel" OnValidSubmit="HandleAddMashup">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Titre</label>
+        <InputText class="form-control" @bind-Value="mashupModel.Title" />
+        <ValidationMessage For="@(() => mashupModel.Title)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Description</label>
+        <InputTextArea class="form-control" @bind-Value="mashupModel.Description" />
+    </div>
+
+    <div class="mb-3">
+        <label>Format (mp3/wav)</label>
+        <InputText class="form-control" @bind-Value="mashupModel.Format" />
+    </div>
+
+    <div class="mb-3">
+        <label>Lien ou fichier audio</label>
+        <InputText class="form-control" @bind-Value="mashupModel.UrlLink" />
+    </div>
+
+    <div class="mb-3">
+        <label>Image de couverture</label>
+        <InputText class="form-control" @bind-Value="mashupModel.CoverImage" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Ajouter</button>
+</EditForm>
+
+@code {
+    private ClientDtos.MashupCreateDto mashupModel = new();
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetUserIdAsync();
+
+        // Valeurs par défaut
+        mashupModel.Length = 0;
+        mashupModel.IsExplicit = false;
+    }
+
+    private async Task SetUserIdAsync()
+    {
+        var token = await LocalStorage.GetItemAsStringAsync("authToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+
+            // Le UserId est stocké dans le claim "sub" (ou "nameid" selon ton API)
+            var userIdClaim = jwt.Claims.FirstOrDefault(c =>
+                c.Type == "sub" || c.Type.Contains("nameidentifier"));
+
+            if (userIdClaim != null)
+            {
+                mashupModel.UserId = int.Parse(userIdClaim.Value);
+            }
+        }
+    }
+
+    private async Task HandleAddMashup()
+    {
+        var created = await MashupService.AddAsync(mashupModel);
+
+        if (created != null)
+        {
+            message = $"✅ Mashup '{created.Title}' ajouté avec succès !";
+            Nav.NavigateTo("/mashups");
+        }
+        else
+        {
+            message = "❌ Erreur lors de l'ajout du mashup.";
+        }
+    }
+}

@@ -1,0 +1,40 @@
+﻿@page "/playlists"
+@using MixMashter.Blazor.Services
+@using MixMashter.Models.DTOs
+@inject PlaylistApiService PlaylistService
+
+<h3>Playlists</h3>
+
+@if (playlists == null)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (!playlists.Any())
+{
+    <p>Aucune playlist trouvée.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var playlist in playlists)
+        {
+            <li class="list-group-item">
+                <strong>@playlist.Title</strong> (par @playlist.Username)
+                <br />
+                Créée le : @playlist.DateCreated.ToLocalTime().ToShortDateString()
+                <br />
+                <em>Mashups : @playlist.Mashups.Count</em> |
+                <em>Total : @playlist.TotalLength secondes</em>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<PlaylistReadDto>? playlists;
+
+    protected override async Task OnInitializedAsync()
+    {
+        playlists = (await PlaylistService.GetAllAsync())?.ToList();
+    }
+}

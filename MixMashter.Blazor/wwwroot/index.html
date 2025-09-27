@@ -27,6 +27,15 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        function playAudio(url) {
+            const player = document.getElementById("audioPlayer");
+            player.src = url;
+            player.hidden = false;
+            player.play();
+        }
+    </script>
+
 </body>
 
 </html>

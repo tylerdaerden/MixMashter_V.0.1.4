@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.JsonPatch;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using MixMashter.BLL.Interfaces;
 using MixMashter.Models.DTOs;
@@ -210,5 +211,35 @@ namespace MixMashter.API.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("upload")]
+        [Authorize(Roles = "Masher,Admin")]
+        public async Task<IActionResult> UploadFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Fichier vide.");
+
+            // Vérification basique du type MIME
+            var allowedImageTypes = new[] { "image/jpeg", "image/png" };
+            var allowedAudioTypes = new[] { "audio/mpeg", "audio/wav" };
+
+            var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+            if (!Directory.Exists(uploads))
+                Directory.CreateDirectory(uploads);
+
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(uploads, fileName);
+
+            await using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var publicUrl = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+            return Ok(new { Url = publicUrl });
+        }
+
+
     }
 }

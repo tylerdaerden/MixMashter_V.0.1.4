@@ -1,0 +1,92 @@
+﻿@page "/register"
+@using Microsoft.AspNetCore.Components.Authorization
+@using MixMashter.Blazor.Models.Auth
+@using MixMashter.Blazor.Services
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject AuthApiService AuthService
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
+
+
+<h3>Register</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<!-- Ajout du Context="formContext" -->
+<EditForm Model="registerModel" OnValidSubmit="HandleRegister" Context="formContext">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Prénom</label>
+        <InputText class="form-control" @bind-Value="registerModel.Firstname" />
+        <ValidationMessage For="@(() => registerModel.Firstname)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Nom</label>
+        <InputText class="form-control" @bind-Value="registerModel.Lastname" />
+        <ValidationMessage For="@(() => registerModel.Lastname)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Nom d’utilisateur</label>
+        <InputText class="form-control" @bind-Value="registerModel.Username" />
+        <ValidationMessage For="@(() => registerModel.Username)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Email</label>
+        <InputText class="form-control" @bind-Value="registerModel.Email" />
+        <ValidationMessage For="@(() => registerModel.Email)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Mot de passe</label>
+        <InputText type="password" class="form-control" @bind-Value="registerModel.Password" />
+        <ValidationMessage For="@(() => registerModel.Password)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Rôle</label>
+        <InputSelect class="form-control" @bind-Value="registerModel.Role">
+            <option value="User">User</option>
+            <option value="Masher">Masher</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => registerModel.Role)" />
+    </div>
+
+    <button class="btn btn-primary" type="submit">Register</button>
+</EditForm>
+
+@code {
+    private RegisterDto registerModel = new();
+    private string? errorMessage;
+
+    private async Task HandleRegister()
+    {
+        var result = await AuthService.RegisterAsync(registerModel);
+
+        if (result == null)
+        {
+            errorMessage = "Échec de l’inscription. Vérifie tes informations.";
+            return;
+        }
+
+        // Sauvegarde du token JWT
+        await LocalStorage.SetItemAsync("authToken", result.Token);
+
+        // Notifier le NavMenu que l’état a changé
+        if (AuthStateProvider is JwtAuthStateProvider jwtProvider)
+        {
+            jwtProvider.NotifyAuthChanged();
+        }
+
+
+        // Redirection après inscription
+        Nav.NavigateTo("/");
+    }
+}

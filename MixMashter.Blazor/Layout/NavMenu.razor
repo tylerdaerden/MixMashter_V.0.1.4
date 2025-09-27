@@ -1,6 +1,14 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using MixMashter.Blazor.Services
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject JwtAuthStateProvider JwtAuthProvider
+@implements IDisposable
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">MixMashter.Blazor</a>
+        <a class="navbar-brand" href="">MixMashter</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -9,31 +17,97 @@
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="nav flex-column">
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/playlists">
+                        <span class="oi oi-list"></span> Playlists
+                    </NavLink>
+                </div>
+
+                <!-- ✅ Nouveau lien Mashups -->
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/mashups">
+                        <span class="oi oi-music"></span> Mashups
+                    </NavLink>
+                </div>
+
+                <!-- Toujours visible, désactivé si non Masher/Admin -->
+                <div class="nav-item px-3">
+                    <NavLink class="@AddMashupClass" href="@AddMashupHref">
+                        <span class="oi oi-plus"></span> Ajouter Mashup
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <a class="nav-link" href="" @onclick="Logout">Logout</a>
+                </div>
+            </Authorized>
+
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/login">
+                        <span class="oi oi-account-login"></span> Login
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/register">
+                        <span class="oi oi-plus"></span> Register
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </nav>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
+    private bool canAddMashup;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
-    private void ToggleNavMenu()
+    private string AddMashupClass => canAddMashup ? "nav-link" : "nav-link disabled";
+    private string AddMashupHref => canAddMashup ? "/mashups/add" : "#";
+
+    private void ToggleNavMenu() => collapseNavMenu = !collapseNavMenu;
+
+    protected override async Task OnInitializedAsync()
     {
-        collapseNavMenu = !collapseNavMenu;
+        await RefreshRolesAsync();
+        AuthStateProvider.AuthenticationStateChanged += OnAuthChanged;
+    }
+
+    private async void OnAuthChanged(Task<AuthenticationState> task)
+    {
+        await RefreshRolesAsync(task);
+        StateHasChanged();
+    }
+
+    private async Task RefreshRolesAsync(Task<AuthenticationState>? task = null)
+    {
+        var state = task == null
+            ? await AuthStateProvider.GetAuthenticationStateAsync()
+            : await task;
+
+        var user = state.User;
+        canAddMashup = user.IsInRole("Masher") || user.IsInRole("Admin");
+    }
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthChanged;
+    }
+
+    private async Task Logout()
+    {
+        await LocalStorage.RemoveItemAsync("authToken");
+        JwtAuthProvider.NotifyAuthChanged();
     }
 }

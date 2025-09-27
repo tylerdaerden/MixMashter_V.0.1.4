@@ -96,9 +96,9 @@ namespace MixMashter.API.Controllers
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            // ✅ Validation du nouveau mot de passe
+            //  Validation du nouveau mot de passe
             if (!_userService.IsValidPassword(dto.NewPassword))
-                return BadRequest("Password must contain at least 8 characters, including uppercase, lowercase, number and special character.");
+                return BadRequest("Le mot de passe doit contenir au moins 8 caractères, dont des majuscules, des minuscules, des chiffres et des caractères spéciaux.");
 
             var success = await _userService.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword);
             if (!success) return BadRequest("Mot de passe actuel invalide");

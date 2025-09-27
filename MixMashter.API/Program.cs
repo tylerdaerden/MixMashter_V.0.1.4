@@ -22,7 +22,7 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
 }); // indispensable pour le support PATCH , vu lors de mes test avec Swagger dans mes ArtistsTestController et aussi pour afficher les enums en string dans les retours json pour + de clarté
-builder.Services.AddOpenApi();
+//builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 // Swagger avec support JWT (solution trouvée via assistance IA ChatGPT je bloquais parce qu'avant j'avais juste ajouté Swagger comme dans mes projets précédents builder.Services.AddSwaggerGen() )
 // Or Swagger ne sait pas gérer le JWT tout seul , il faut lui dire comment faire , c'est ce que je fais ci-dessous suite à la suggestion de l'IA
@@ -62,6 +62,8 @@ builder.Services.AddDbContext<MixMashterDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+
+
 
 // Repositories (DAL)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -105,21 +107,38 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Ajouter le service CORS pour autoriser mon Front Blazor à accéder à mon API
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazor", policy =>
+        policy.WithOrigins("https://localhost:7276")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
+
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// Configuration du pipeline HTTP (ici https, car projet web sécurisé , et proposé lors de la création du projet sous visual studio pour mon ASP.Net Core)
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    //app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseAuthentication();
+
+app.UseRouting();
+
+// Activer CORS ici
+app.UseCors("AllowBlazor");
 
 app.UseAuthorization();
 
